@@ -24,7 +24,8 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_send_olama();
+    void on_start_samorize();
+    void on_return_to_start();
 
 private:
     Ui::MainWindow *ui;

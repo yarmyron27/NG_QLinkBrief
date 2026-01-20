@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QGridLayout" name="gridLayout_3">
@@ -78,7 +78,7 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QPushButton" name="send_olama">
+             <widget class="QPushButton" name="start_samorize">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                 <horstretch>0</horstretch>
@@ -92,7 +92,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Send Olama</string>
+               <string>Start</string>
               </property>
              </widget>
             </item>
@@ -123,7 +123,7 @@
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QListView" name="olama_response"/>
+           <widget class="QListView" name="response_view"/>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">

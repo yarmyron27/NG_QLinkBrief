@@ -11,6 +11,12 @@ MainWindow::MainWindow(QWidget *parent)
     m_parser = new Htmlparser(this);
     m_responseModel = new QStringListModel(this);
 
+    ui->response_view->setModel(m_responseModel);
+
+    connect(ui->start_samorize, &QPushButton::clicked, this, &MainWindow::on_start_samorize);
+    connect(ui->line_url, &QLineEdit::returnPressed, this, &MainWindow::on_start_samorize);
+    connect(ui->return_start, &QPushButton::clicked, this, &MainWindow::on_return_to_start);
+
 }
 
 MainWindow::~MainWindow()
@@ -18,8 +24,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_send_olama() {
+void MainWindow::on_start_samorize() {
     QString url = ui->line_url->text();
 
+    ui->stackedWidget->setCurrentIndex(1);
+
+    m_responseModel->setStringList(QStringList{QStringLiteral("Loading url: ") + url});
+    m_parser->fetch(url);
+
+}
+
+void MainWindow::on_return_to_start() {
+    ui->stackedWidget->setCurrentIndex(0);
 }
 
