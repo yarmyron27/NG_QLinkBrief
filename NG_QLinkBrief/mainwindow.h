@@ -2,6 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLineEdit>
+#include <QStatusBar>
+#include <QStringListModel>
+#include <QUrl>
+
+#include "htmlparser.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -22,6 +28,9 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    Htmlparser *m_parser;
+
+    class QStringListModel *m_responseModel;
 
 
 

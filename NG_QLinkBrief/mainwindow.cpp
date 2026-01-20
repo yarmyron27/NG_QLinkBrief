@@ -6,8 +6,11 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->line_url->setPlaceholderText(">>Enter URL(http/...)");
 
-    connect(ui->send_olama, &QPushButton::clicked, this, &MainWindow::on_send_olama);
+    m_parser = new Htmlparser(this);
+    m_responseModel = new QStringListModel(this);
+
 }
 
 MainWindow::~MainWindow()
