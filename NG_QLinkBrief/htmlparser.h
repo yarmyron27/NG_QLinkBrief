@@ -15,7 +15,10 @@ public:
     explicit Htmlparser(QObject* parent=nullptr);
 
 public slots:
-    void fetch(const QString& url_text);
+    void fetch(const QString& urlText);
+
+private slots:
+    void downloadFinished(QNetworkReply *reply);
 
 signals:
     void htmlReady(const QString& html);

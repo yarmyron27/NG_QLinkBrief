@@ -13,13 +13,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->response_view->setModel(m_responseModel);
 
-    connect(ui->start_samorize, &QPushButton::clicked, this, &MainWindow::on_start_samorize);
-    connect(ui->line_url, &QLineEdit::returnPressed, this, &MainWindow::on_start_samorize);
-    connect(ui->return_start, &QPushButton::clicked, this, &MainWindow::on_return_to_start);
-    connect(ui->line_url, &QLineEdit::textEdited, this, &MainWindow::reset_url_style);
+    connect(ui->start_samorize, &QPushButton::clicked, this, &MainWindow::onStartSamorize);
+    connect(ui->line_url, &QLineEdit::returnPressed, this, &MainWindow::onStartSamorize);
+    connect(ui->return_start, &QPushButton::clicked, this, &MainWindow::onReturnToStart);
+    connect(ui->line_url, &QLineEdit::textEdited, this, &MainWindow::resetUrlStyle);
 
-    connect(m_parser, &Htmlparser::htmlReady, this, &MainWindow::on_html_ready);
-    connect(m_parser, &Htmlparser::error, this, &MainWindow::on_parser_error);
+    connect(m_parser, &Htmlparser::htmlReady, this, &MainWindow::onHtmlReady);
+    connect(m_parser, &Htmlparser::error, this, &MainWindow::onParserError);
 
 }
 
@@ -28,10 +28,10 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_start_samorize() {
-    QString url_text = ui->line_url->text();
+void MainWindow::onStartSamorize() {
+    QString lineUrlText = ui->line_url->text();
 
-    QUrl url = QUrl::fromUserInput(url_text);
+    QUrl url = QUrl::fromUserInput(lineUrlText);
     if (!url.isValid() || url.scheme().isEmpty()) {
         ui->line_url->clear();
         ui->line_url->setPlaceholderText("Invalid URL");
@@ -41,23 +41,23 @@ void MainWindow::on_start_samorize() {
 
     ui->stackedWidget->setCurrentIndex(1);
 
-    m_responseModel->setStringList(QStringList{QStringLiteral("Loading url: ") + url_text});
+    m_responseModel->setStringList(QStringList{QStringLiteral("Loading url: ") + lineUrlText});
     m_parser->fetch(url.toString());
 
 }
 
-void MainWindow::on_return_to_start() {
+void MainWindow::onReturnToStart() {
     ui->stackedWidget->setCurrentIndex(0);
 }
 
-void MainWindow::reset_url_style() {
+void MainWindow::resetUrlStyle() {
     if (ui->line_url->styleSheet().isEmpty()) return;
 
     ui->line_url->setStyleSheet("");
     ui->line_url->setPlaceholderText(">>Enter URL(http/... or https/...)");
 }
 
-void MainWindow::on_html_ready(const QString& html)
+void MainWindow::onHtmlReady(const QString& html)
 {
     QStringList lines = html.split('\n');
     if (lines.size() > 400) {
@@ -67,7 +67,7 @@ void MainWindow::on_html_ready(const QString& html)
     m_responseModel->setStringList(lines);
 }
 
-void MainWindow::on_parser_error(const QString& message)
+void MainWindow::onParserError(const QString& message)
 {
     m_responseModel->setStringList(QStringList{QStringLiteral("ERROR: ") + message});
 }

@@ -24,12 +24,12 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_start_samorize();
-    void on_return_to_start();
-    void reset_url_style();
+    void onStartSamorize();
+    void onReturnToStart();
+    void resetUrlStyle();
 
-    void on_html_ready(const QString& html);
-    void on_parser_error(const QString& message);
+    void onHtmlReady(const QString& html);
+    void onParserError(const QString& message);
 
 private:
     Ui::MainWindow *ui;
