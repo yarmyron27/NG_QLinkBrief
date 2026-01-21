@@ -26,6 +26,10 @@ public:
 private slots:
     void on_start_samorize();
     void on_return_to_start();
+    void reset_url_style();
+
+    void on_html_ready(const QString& html);
+    void on_parser_error(const QString& message);
 
 private:
     Ui::MainWindow *ui;

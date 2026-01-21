@@ -17,6 +17,10 @@ public:
 public slots:
     void fetch(const QString& url_text);
 
+signals:
+    void htmlReady(const QString& html);
+    void error(const QString& message);
+
 
 private:
     QNetworkAccessManager m_manager;
