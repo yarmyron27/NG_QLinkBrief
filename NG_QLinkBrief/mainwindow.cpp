@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_parser, &Htmlparser::htmlReady, this, &MainWindow::onHtmlReady);
     connect(m_parser, &Htmlparser::error, this, &MainWindow::onParserError);
 
+    connect(m_parser, &Htmlparser::progressBar, ui->progres, &QProgressBar::setValue);
 }
 
 MainWindow::~MainWindow()
@@ -40,6 +41,7 @@ void MainWindow::onStartSamorize() {
     }
 
     ui->stackedWidget->setCurrentIndex(1);
+    ui->progres->setValue(0);
 
     m_responseModel->setStringList(QStringList{QStringLiteral("Loading url: ") + lineUrlText});
     m_parser->fetch(url.toString());

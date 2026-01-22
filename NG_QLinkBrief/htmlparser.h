@@ -20,10 +20,12 @@ public slots:
 
 private slots:
     void downloadFinished(QNetworkReply *reply);
+    void downloadProgress(int bytesReceived, int bytesTotal);
 
 signals:
     void htmlReady(const QString& html);
     void error(const QString& message);
+    void progressBar(int num);
 
 
 private:
