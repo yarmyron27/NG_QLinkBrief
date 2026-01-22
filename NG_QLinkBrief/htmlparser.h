@@ -16,6 +16,7 @@ public:
 
 public slots:
     void fetch(const QString& writeUrl);
+    void cancelOperation();
 
 private slots:
     void downloadFinished(QNetworkReply *reply);
@@ -27,6 +28,7 @@ signals:
 
 private:
     QNetworkAccessManager m_manager;
+    QNetworkReply *m_currentReply = nullptr;
 };
 
 #endif // HTMLPARSER_H

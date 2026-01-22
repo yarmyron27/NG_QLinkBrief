@@ -47,6 +47,13 @@ void MainWindow::onStartSamorize() {
 }
 
 void MainWindow::onReturnToStart() {
+    m_parser->cancelOperation();
+
+    m_responseModel->setStringList(QStringList{});
+
+    ui->line_url->clear();
+    resetUrlStyle();
+
     ui->stackedWidget->setCurrentIndex(0);
 }
 
