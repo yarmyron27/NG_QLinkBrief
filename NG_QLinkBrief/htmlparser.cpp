@@ -21,7 +21,12 @@ void Htmlparser::downloadFinished(QNetworkReply *reply) {
 }
 
 
-void Htmlparser::fetch(const QString& url_text) {
+void Htmlparser::fetch(const QString& writeUrl) {
+    QUrl url(writeUrl);
 
+    QNetworkRequest request(url);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+    m_manager.get(request);
 }
 
