@@ -12,11 +12,13 @@ CONFIG += c++17
 
 SOURCES += \
     htmlparser.cpp \
+    htmltextextractor.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     htmlparser.h \
+    htmltextextractor.h \
     mainwindow.h
 
 FORMS += \

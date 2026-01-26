@@ -8,6 +8,7 @@
 #include <QUrl>
 
 #include "htmlparser.h"
+#include "htmltextextractor.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -32,10 +33,11 @@ private slots:
     void onParserError(const QString& message);
 
 private:
-    Ui::MainWindow *ui;
-    Htmlparser *m_parser;
+    Ui::MainWindow* ui;
+    Htmlparser* m_parser;
+    Htmltextextractor *m_extractor;
 
-    class QStringListModel *m_responseModel;
+    QStringListModel* m_responseModel;
 
 
 

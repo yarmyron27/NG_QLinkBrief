@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->line_url->setPlaceholderText(">>Enter URL(http/... or https/...)");
 
     m_parser = new Htmlparser(this);
+    m_extractor = new Htmltextextractor();
     m_responseModel = new QStringListModel(this);
 
     ui->response_view->setModel(m_responseModel);
@@ -27,6 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+
+    delete m_extractor;
 }
 
 void MainWindow::onStartSamorize() {
@@ -68,11 +71,20 @@ void MainWindow::resetUrlStyle() {
 
 void MainWindow::onHtmlReady(const QString& html)
 {
-    QStringList lines = html.split('\n');
-    if (lines.size() > 400) {
-        lines = lines.mid(0, 400);
-        lines << QStringLiteral("... (truncated)");
+    // QStringList lines = html.split('\n');
+    // if (lines.size() > 400) {
+    //     lines = lines.mid(0, 400);
+    //     lines << QStringLiteral("... (truncated)");
+    // }
+
+    QString cleanText = m_extractor->process(html);
+    QStringList lines = cleanText.split('\n');
+
+    if (lines.size() > 1000) {
+        lines = lines.mid(0, 1000);
+        lines << QStringLiteral("[...Text truncated...]");
     }
+
     m_responseModel->setStringList(lines);
 }
 

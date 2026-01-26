@@ -29,8 +29,8 @@ signals:
 
 
 private:
-    QNetworkAccessManager m_manager;
-    QNetworkReply *m_currentReply = nullptr;
+    QNetworkAccessManager* m_manager = nullptr;
+    QNetworkReply* m_currentReply = nullptr;
 };
 
 #endif // HTMLPARSER_H

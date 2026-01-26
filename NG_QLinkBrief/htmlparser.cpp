@@ -2,9 +2,10 @@
 
 Htmlparser::Htmlparser(QObject* parent) : QObject(parent) {
 
+    m_manager = new QNetworkAccessManager(this);
     m_currentReply = nullptr;
 
-    connect(&m_manager, &QNetworkAccessManager::finished, this, &Htmlparser::downloadFinished);
+    connect(m_manager, &QNetworkAccessManager::finished, this, &Htmlparser::downloadFinished);
 
 }
 
@@ -45,7 +46,12 @@ void Htmlparser::downloadFinished(QNetworkReply *reply) {
 void Htmlparser::fetch(const QString& writeUrl) {
     cancelOperation();
 
-    QUrl url(writeUrl);
+    if (!m_manager) {
+        emit error(QStringLiteral("Network manager is null"));
+        return;
+    }
+
+    const QUrl url = QUrl::fromUserInput(writeUrl);
     const QString scheme = url.scheme().toLower();
     if (scheme != QStringLiteral("http") && scheme != QStringLiteral("https")) {
         emit error(QStringLiteral("Only http/https supported"));
@@ -56,7 +62,7 @@ void Htmlparser::fetch(const QString& writeUrl) {
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
     request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
 
-    m_currentReply = m_manager.get(request);
+    m_currentReply = m_manager->get(request);
 
     connect(m_currentReply, &QNetworkReply::downloadProgress, this, &Htmlparser::downloadProgress);
 }
