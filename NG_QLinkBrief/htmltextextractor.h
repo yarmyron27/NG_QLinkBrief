@@ -1,6 +1,7 @@
 #ifndef HTMLTEXTEXTRACTOR_H
 #define HTMLTEXTEXTRACTOR_H
 
+#include <QObject>
 #include <QString>
 #include <QStringList>
 #include <QRegularExpression>
@@ -9,16 +10,21 @@
 #include <QJsonArray>
 #include <QDebug>
 
-#include "htmlparser.h"
-
-class Htmltextextractor {
-
+class Htmltextextractor : public QObject
+{
+    Q_OBJECT
 public:
-    Htmltextextractor();
+    explicit Htmltextextractor(QObject* parent = nullptr);
 
-    QString process(const QString& rawHtml);
+public slots:
+    void extract(const QString& rawHtml);
+
+signals:
+    void textReady(const QString& text);
+    void error(const QString& message);
 
 private:
+    QString process(const QString& rawHtml);
     QString tryJsonLd(const QString& html);
     QString removeJunk(const QString& html);
     QString trySmartParagraphs(const QString& html);

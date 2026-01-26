@@ -29,8 +29,11 @@ private slots:
     void onReturnToStart();
     void resetUrlStyle();
 
-    void onHtmlReady(const QString& html);
-    void onParserError(const QString& message);
+    // void onHtmlReady(const QString& html);
+     void onParserError(const QString& message);
+
+    void onExtractedTextReady(const QString& text);
+    void onExtractorError(const QString& message);
 
 private:
     Ui::MainWindow* ui;

@@ -77,7 +77,7 @@ void Htmlparser::cancelOperation() {
     }
 }
 
-void Htmlparser::downloadProgress(int bytesReceived, int bytesTotal) {
+void Htmlparser::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     if (bytesTotal > 0) {
         const int procent = int((bytesReceived * 100) / bytesTotal);
         emit progressBar(procent);

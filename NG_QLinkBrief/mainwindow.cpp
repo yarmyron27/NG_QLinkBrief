@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->line_url->setPlaceholderText(">>Enter URL(http/... or https/...)");
 
     m_parser = new Htmlparser(this);
-    m_extractor = new Htmltextextractor();
+    m_extractor = new Htmltextextractor(this);
     m_responseModel = new QStringListModel(this);
 
     ui->response_view->setModel(m_responseModel);
@@ -19,8 +19,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->return_start, &QPushButton::clicked, this, &MainWindow::onReturnToStart);
     connect(ui->line_url, &QLineEdit::textEdited, this, &MainWindow::resetUrlStyle);
 
-    connect(m_parser, &Htmlparser::htmlReady, this, &MainWindow::onHtmlReady);
+    // connect(m_parser, &Htmlparser::htmlReady, this, &MainWindow::onHtmlReady);
     connect(m_parser, &Htmlparser::error, this, &MainWindow::onParserError);
+
+    connect(m_parser, &Htmlparser::htmlReady, m_extractor, &Htmltextextractor::extract);
+    connect(m_extractor, &Htmltextextractor::textReady, this, &MainWindow::onExtractedTextReady);
+    connect(m_extractor, &Htmltextextractor::error, this, &MainWindow::onExtractorError);
 
     connect(m_parser, &Htmlparser::progressBar, ui->progres, &QProgressBar::setValue);
 }
@@ -28,8 +32,6 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
-
-    delete m_extractor;
 }
 
 void MainWindow::onStartSamorize() {
@@ -69,16 +71,26 @@ void MainWindow::resetUrlStyle() {
     ui->line_url->setPlaceholderText(">>Enter URL(http/... or https/...)");
 }
 
-void MainWindow::onHtmlReady(const QString& html)
-{
-    // QStringList lines = html.split('\n');
-    // if (lines.size() > 400) {
-    //     lines = lines.mid(0, 400);
-    //     lines << QStringLiteral("... (truncated)");
-    // }
+// void MainWindow::onHtmlReady(const QString& html)
+// {
+//     // QStringList lines = html.split('\n');
+//     // if (lines.size() > 400) {
+//     //     lines = lines.mid(0, 400);
+//     //     lines << QStringLiteral("... (truncated)");
+//     // }
 
-    QString cleanText = m_extractor->process(html);
-    QStringList lines = cleanText.split('\n');
+//     m_responseModel->setStringList(lines);
+// }
+
+// void MainWindow::onParserError(const QString& message)
+// {
+//     m_responseModel->setStringList(QStringList{QStringLiteral("ERROR: ") + message});
+// }
+
+
+void MainWindow::onExtractedTextReady(const QString& text)
+{
+    QStringList lines = text.split('\n');
 
     if (lines.size() > 1000) {
         lines = lines.mid(0, 1000);
@@ -88,8 +100,8 @@ void MainWindow::onHtmlReady(const QString& html)
     m_responseModel->setStringList(lines);
 }
 
-void MainWindow::onParserError(const QString& message)
+void MainWindow::onExtractorError(const QString& message)
 {
-    m_responseModel->setStringList(QStringList{QStringLiteral("ERROR: ") + message});
+    m_responseModel->setStringList(QStringList{QStringLiteral("EXTRACTOR ERROR: ") + message});
 }
 
