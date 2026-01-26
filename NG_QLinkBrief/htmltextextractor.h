@@ -5,6 +5,7 @@
 #include <QString>
 #include <QStringList>
 #include <QRegularExpression>
+#include <QTextDocument>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>

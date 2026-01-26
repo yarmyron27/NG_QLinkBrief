@@ -29,8 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_parser, &Htmlparser::progressBar, ui->progres, &QProgressBar::setValue);
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
@@ -88,8 +87,7 @@ void MainWindow::resetUrlStyle() {
 // }
 
 
-void MainWindow::onExtractedTextReady(const QString& text)
-{
+void MainWindow::onExtractedTextReady(const QString& text) {
     QStringList lines = text.split('\n');
 
     if (lines.size() > 1000) {
@@ -100,8 +98,7 @@ void MainWindow::onExtractedTextReady(const QString& text)
     m_responseModel->setStringList(lines);
 }
 
-void MainWindow::onExtractorError(const QString& message)
-{
+void MainWindow::onExtractorError(const QString& message) {
     m_responseModel->setStringList(QStringList{QStringLiteral("EXTRACTOR ERROR: ") + message});
 }
 
