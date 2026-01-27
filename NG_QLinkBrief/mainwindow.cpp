@@ -81,10 +81,10 @@ void MainWindow::resetUrlStyle() {
 //     m_responseModel->setStringList(lines);
 // }
 
-// void MainWindow::onParserError(const QString& message)
-// {
-//     m_responseModel->setStringList(QStringList{QStringLiteral("ERROR: ") + message});
-// }
+void MainWindow::onParserError(const QString& message)
+{
+    m_responseModel->setStringList(QStringList{QStringLiteral("ERROR: ") + message});
+}
 
 
 void MainWindow::onExtractedTextReady(const QString& text) {

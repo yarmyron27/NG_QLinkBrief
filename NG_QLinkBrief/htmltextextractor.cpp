@@ -74,10 +74,35 @@ QString Htmltextextractor::removeJunk(const QString& html) {
     QString text = html;
 
     QRegularExpression junkRegex(
-        R"(<script.*?>.*?</script>|<style.*?>.*?</style>|<svg.*?>.*?</svg>|)",
+        R"(<script.*?>.*?</script>|<style.*?>.*?</style>|<svg.*?>.*?</svg>|<noscript\b.*?>.*?</noscript>)",
         QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
 
     text.remove(junkRegex);
     return text;
 }
+
+QString Htmltextextractor::trySmartParagraphs(const QString& html) {
+    QStringList results;
+    QStringList blocks = html.split(QRegularExpression("</(p|div|h\\d)>"), Qt::SkipEmptyParts);
+
+    foreach (const QString& block, blocks) {
+        QString cleanBlock = block;
+
+        QTextDocument doc;
+        doc.setHtml(cleanBlock);
+        cleanBlock = doc.toPlainText();
+
+        cleanBlock = cleanBlock.trimmed();
+
+        if (cleanBlock.length() < 50) continue;
+
+        if (cleanBlock.contains("copyright", Qt::CaseInsensitive) ||
+            cleanBlock.contains("all rights reserved", Qt::CaseInsensitive))
+            continue;
+
+        results << cleanBlock;
+    }
+    return results.join("\n\n");
+}
+
 
