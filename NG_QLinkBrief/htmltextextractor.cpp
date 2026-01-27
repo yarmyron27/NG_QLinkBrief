@@ -32,7 +32,7 @@ QString Htmltextextractor::process(const QString& rawHtml) {
 }
 
 QString Htmltextextractor::tryJsonLd(const QString& html) {
-    QRegularExpression regex("<script type=\"application/ld\\+json\">(.*?)</script>",
+    QRegularExpression regex(R"(<script type="application/ld\+json">(.*?)</script>)",
                             QRegularExpression::DotMatchesEverythingOption);
 
     QRegularExpressionMatchIterator counter = regex.globalMatch(html);
@@ -71,4 +71,13 @@ QString Htmltextextractor::tryJsonLd(const QString& html) {
 }
 
 QString Htmltextextractor::removeJunk(const QString& html) {
+    QString text = html;
+
+    QRegularExpression junkRegex(
+        R"(<script.*?>.*?</script>|<style.*?>.*?</style>|<svg.*?>.*?</svg>|)",
+        QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
+
+    text.remove(junkRegex);
+    return text;
+}
 
