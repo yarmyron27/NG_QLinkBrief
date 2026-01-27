@@ -30,7 +30,7 @@ private slots:
     void resetUrlStyle();
 
     // void onHtmlReady(const QString& html);
-     void onParserError(const QString& message);
+    void onParserError(const QString& message);
 
     void onExtractedTextReady(const QString& text);
     void onExtractorError(const QString& message);
@@ -38,7 +38,7 @@ private slots:
 private:
     Ui::MainWindow* ui;
     Htmlparser* m_parser;
-    Htmltextextractor *m_extractor;
+    Htmltextextractor* m_extractor;
 
     QStringListModel* m_responseModel;
 

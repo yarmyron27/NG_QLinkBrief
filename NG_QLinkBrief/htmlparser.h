@@ -19,7 +19,7 @@ public slots:
     void cancelOperation();
 
 private slots:
-    void downloadFinished(QNetworkReply *reply);
+    void downloadFinished(QNetworkReply* reply);
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 
 signals:

@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->return_start, &QPushButton::clicked, this, &MainWindow::onReturnToStart);
     connect(ui->line_url, &QLineEdit::textEdited, this, &MainWindow::resetUrlStyle);
 
-    // connect(m_parser, &Htmlparser::htmlReady, this, &MainWindow::onHtmlReady);
+    //connect(m_parser, &Htmlparser::htmlReady, this, &MainWindow::onHtmlReady);
     connect(m_parser, &Htmlparser::error, this, &MainWindow::onParserError);
 
     connect(m_parser, &Htmlparser::htmlReady, m_extractor, &Htmltextextractor::extract);

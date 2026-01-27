@@ -30,8 +30,6 @@ private:
     QString removeJunk(const QString& html);
     QString trySmartParagraphs(const QString& html);
     QString regularClean(const QString& html);
-
-
 };
 
 #endif // HTMLTEXTEXTRACTOR_H
