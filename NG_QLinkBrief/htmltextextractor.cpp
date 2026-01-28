@@ -21,7 +21,10 @@ QString Htmltextextractor::process(const QString& rawHtml) {
     }
     QString cleanHtml = removeJunk(rawHtml);
 
-    QString smartResult = trySmartParagraphs(cleanHtml);
+    QString chunk = extractMainChunk(cleanHtml);
+    QString base = chunk.isEmpty() ? cleanHtml : chunk;
+
+    QString smartResult = trySmartParagraphs(base);
     if (smartResult.length() > 200) {
         qDebug() << "Algorithm: used smart paragraphs";
         return smartResult;
@@ -77,13 +80,44 @@ QString Htmltextextractor::removeJunk(const QString& html) {
         R"(<script.*?>.*?</script>|<style.*?>.*?</style>|<svg.*?>.*?</svg>|<noscript\b.*?>.*?</noscript>)",
         QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
 
+    QRegularExpression layoutRegex(
+        R"(<(header|nav|footer|aside|form)\b.*?>.*?</\1>)",
+        QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
+
+    QRegularExpression classIdJunk(
+        R"(<[^>]+\b(class|id)\s*=\s*["'][^"']*(menu|navbar|breadcrumb|footer|header|sidebar|share|social|comment|related|subscribe|cookie|banner|ads|advert)[^"']*["'][^>]*>.*?</[^>]+>)",
+        QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
+    text.remove(classIdJunk);
+
     text.remove(junkRegex);
     return text;
 }
 
+QString Htmltextextractor::extractMainChunk(const QString& html) {
+    const QRegularExpression articleRe(
+        R"(<article\b[^>]*>(.*?)</article>)",
+        QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
+
+    QRegularExpressionMatch search = articleRe.match(html);
+    if (search.hasMatch())
+        qDebug() << "search article";
+        return search.captured(1);
+
+    const QRegularExpression mainRe(
+        R"(<main\b[^>]*>(.*?)</main>)",
+        QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
+
+    search = mainRe.match(html);
+    if (search.hasMatch())
+        qDebug() << "search main";
+        return search.captured(1);
+
+    return QString();
+}
+
 QString Htmltextextractor::trySmartParagraphs(const QString& html) {
     QStringList results;
-    QStringList blocks = html.split(QRegularExpression("</(p|div|h\\d)>"), Qt::SkipEmptyParts);
+    QStringList blocks = html.split(QRegularExpression("</(p|li|h\\d)>"), Qt::SkipEmptyParts);
 
     foreach (const QString& block, blocks) {
         QString cleanBlock = block;
@@ -96,13 +130,21 @@ QString Htmltextextractor::trySmartParagraphs(const QString& html) {
 
         if (cleanBlock.length() < 50) continue;
 
+        if (cleanBlock.contains('|') || cleanBlock.contains(QChar(u'»')) || cleanBlock.contains(QChar(u'·')))
+            continue;
+
+        const QStringList words = cleanBlock.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+        const bool hasSentencePunct = cleanBlock.contains(QRegularExpression("[\\.!\\?:;]"));
+        if (words.size() <= 3 && !hasSentencePunct)
+            continue;
+
         if (cleanBlock.contains("copyright", Qt::CaseInsensitive) ||
             cleanBlock.contains("all rights reserved", Qt::CaseInsensitive))
             continue;
 
         results << cleanBlock;
     }
-    return results.join("\n\n");
+    return results.join("\n");
 }
 
 QString Htmltextextractor::regularClean(const QString& html) {

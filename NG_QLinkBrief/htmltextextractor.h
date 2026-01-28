@@ -28,6 +28,7 @@ private:
     QString process(const QString& rawHtml);
     QString tryJsonLd(const QString& html);
     QString removeJunk(const QString& html);
+    QString extractMainChunk(const QString& html);
     QString trySmartParagraphs(const QString& html);
     QString regularClean(const QString& html);
 };
