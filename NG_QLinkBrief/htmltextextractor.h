@@ -31,6 +31,7 @@ private:
     QString extractMainChunk(const QString& html);
     QString trySmartParagraphs(const QString& html);
     QString regularClean(const QString& html);
+    QString postFilterText(const QString& rawText);
 };
 
 #endif // HTMLTEXTEXTRACTOR_H

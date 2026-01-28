@@ -25,6 +25,7 @@ QString Htmltextextractor::process(const QString& rawHtml) {
     QString base = chunk.isEmpty() ? cleanHtml : chunk;
 
     QString smartResult = trySmartParagraphs(base);
+    smartResult = postFilterText(smartResult);
     if (smartResult.length() > 200) {
         qDebug() << "Algorithm: used smart paragraphs";
         return smartResult;
@@ -128,15 +129,15 @@ QString Htmltextextractor::trySmartParagraphs(const QString& html) {
 
         cleanBlock = cleanBlock.trimmed();
 
-        if (cleanBlock.length() < 50) continue;
-
         if (cleanBlock.contains('|') || cleanBlock.contains(QChar(u'»')) || cleanBlock.contains(QChar(u'·')))
             continue;
 
         const QStringList words = cleanBlock.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
         const bool hasSentencePunct = cleanBlock.contains(QRegularExpression("[\\.!\\?:;]"));
-        if (words.size() <= 3 && !hasSentencePunct)
+        if (words.size() <= 8 && !hasSentencePunct)
             continue;
+
+        if (cleanBlock.length() < 100) continue;
 
         if (cleanBlock.contains("copyright", Qt::CaseInsensitive) ||
             cleanBlock.contains("all rights reserved", Qt::CaseInsensitive))
@@ -160,3 +161,31 @@ QString Htmltextextractor::regularClean(const QString& html) {
     text.replace(QRegularExpression("\\n\\s*\\n+"), "\n\n");
     return text.trimmed();
 }
+
+QString Htmltextextractor::postFilterText(const QString& rawText) {
+    QString text = rawText;
+
+    const QRegularExpression imgSizeLineRe(R"(^\s*\d{2,4}\s*[x×]\s*\d{2,4}\s*$)");
+    const QRegularExpression pxRe(R"(\b\d{2,4}\s*px\b)", QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpression punctRe(R"([\.!\?:;])");
+    const QRegularExpression urlRe(R"((https?://|www\.|doi:))", QRegularExpression::CaseInsensitiveOption);
+
+
+    QStringList out;
+    foreach (QString line, text.split('\n')) {
+        line = line.trimmed();
+        if (line.isEmpty()) continue;
+
+        if (imgSizeLineRe.match(line).hasMatch()) continue;
+        if (pxRe.match(line).hasMatch()) continue;
+        if (urlRe.match(line).hasMatch()) continue;
+
+        out << line;
+    }
+
+    if (!out.isEmpty())
+        qDebug() << "postFilter done work";
+
+    return out.join("\n").trimmed();
+}
+
