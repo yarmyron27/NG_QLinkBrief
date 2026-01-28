@@ -105,4 +105,16 @@ QString Htmltextextractor::trySmartParagraphs(const QString& html) {
     return results.join("\n\n");
 }
 
+QString Htmltextextractor::regularClean(const QString& html) {
+    QString text = html;
 
+    text.replace(QRegularExpression("</(div|p|h\\d|li)>", QRegularExpression::CaseInsensitiveOption), "\n");
+
+    QTextDocument doc;
+    doc.setHtml(text);
+    text = doc.toPlainText();
+
+    text.replace(QRegularExpression("[ \\t]+"), " ");
+    text.replace(QRegularExpression("\\n\\s*\\n+"), "\n\n");
+    return text.trimmed();
+}
