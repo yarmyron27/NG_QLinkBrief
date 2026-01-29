@@ -26,12 +26,13 @@ signals:
 
 private:
     QString process(const QString& rawHtml);
-    QString tryJsonLd(const QString& html);
-    QString removeJunk(const QString& html);
-    QString extractMainChunk(const QString& html);
-    QString trySmartParagraphs(const QString& html);
-    QString regularClean(const QString& html);
-    QString postFilterText(const QString& rawText);
+    QString tryJsonLd(const QString& rawHtml);
+    QString removeJunk(const QString& rawHtml);
+    QString extractMainChunk(const QString& cleanHtml);
+    QString regularClean(const QString& cleanHtml);
+    //QString regularClean(const QString& html);
+    QString postFilterText(const QString& primaryText);
+    QString trimText(const QString& text);
 };
 
 #endif // HTMLTEXTEXTRACTOR_H

@@ -15,8 +15,9 @@ void Htmltextextractor::extract(const QString& rawHtml) {
 QString Htmltextextractor::process(const QString& rawHtml) {
     QString jsonResult = tryJsonLd(rawHtml);
 
-    if (!jsonResult.isEmpty()) {
+    if (!jsonResult.isEmpty() && jsonResult.length() > 200) {
         qDebug() << "Algorithm: used Json-ld";
+        jsonResult = trimText(jsonResult);
         return jsonResult;
     }
     QString cleanHtml = removeJunk(rawHtml);
@@ -24,22 +25,21 @@ QString Htmltextextractor::process(const QString& rawHtml) {
     QString chunk = extractMainChunk(cleanHtml);
     QString base = chunk.isEmpty() ? cleanHtml : chunk;
 
-    QString smartResult = trySmartParagraphs(base);
-    smartResult = postFilterText(smartResult);
-    if (smartResult.length() > 200) {
+    QString regularResult = regularClean(base);
+    regularResult = postFilterText(regularResult);
+    regularResult = trimText(regularResult);
+    if (regularResult.length() > 200) {
         qDebug() << "Algorithm: used smart paragraphs";
-        return smartResult;
+        return regularResult;
     }
 
-    qDebug() << "Algorithm: used regular clean";
-    return regularClean(cleanHtml);
 }
 
-QString Htmltextextractor::tryJsonLd(const QString& html) {
+QString Htmltextextractor::tryJsonLd(const QString& rawHtml) {
     QRegularExpression regex(R"(<script type="application/ld\+json">(.*?)</script>)",
                             QRegularExpression::DotMatchesEverythingOption);
 
-    QRegularExpressionMatchIterator counter = regex.globalMatch(html);
+    QRegularExpressionMatchIterator counter = regex.globalMatch(rawHtml);
 
     while (counter.hasNext()) {
         QRegularExpressionMatch match = counter.next();
@@ -74,8 +74,8 @@ QString Htmltextextractor::tryJsonLd(const QString& html) {
     return QString();
 }
 
-QString Htmltextextractor::removeJunk(const QString& html) {
-    QString text = html;
+QString Htmltextextractor::removeJunk(const QString& rawHtml) {
+    QString text = rawHtml;
 
     QRegularExpression junkRegex(
         R"(<script.*?>.*?</script>|<style.*?>.*?</style>|<svg.*?>.*?</svg>|<noscript\b.*?>.*?</noscript>)",
@@ -94,12 +94,12 @@ QString Htmltextextractor::removeJunk(const QString& html) {
     return text;
 }
 
-QString Htmltextextractor::extractMainChunk(const QString& html) {
+QString Htmltextextractor::extractMainChunk(const QString& cleanHtml) {
     const QRegularExpression articleRe(
         R"(<article\b[^>]*>(.*?)</article>)",
         QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
 
-    QRegularExpressionMatch search = articleRe.match(html);
+    QRegularExpressionMatch search = articleRe.match(cleanHtml);
     if (search.hasMatch())
         qDebug() << "search article";
         return search.captured(1);
@@ -108,7 +108,7 @@ QString Htmltextextractor::extractMainChunk(const QString& html) {
         R"(<main\b[^>]*>(.*?)</main>)",
         QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
 
-    search = mainRe.match(html);
+    search = mainRe.match(cleanHtml);
     if (search.hasMatch())
         qDebug() << "search main";
         return search.captured(1);
@@ -116,9 +116,9 @@ QString Htmltextextractor::extractMainChunk(const QString& html) {
     return QString();
 }
 
-QString Htmltextextractor::trySmartParagraphs(const QString& html) {
+QString Htmltextextractor::regularClean(const QString& cleanHtml) {
     QStringList results;
-    QStringList blocks = html.split(QRegularExpression("</(p|li|h\\d)>"), Qt::SkipEmptyParts);
+    QStringList blocks = cleanHtml.split(QRegularExpression("</(p|div|br|li|h\\d|tr|td|th|table)>"), Qt::SkipEmptyParts);
 
     foreach (const QString& block, blocks) {
         QString cleanBlock = block;
@@ -126,18 +126,15 @@ QString Htmltextextractor::trySmartParagraphs(const QString& html) {
         QTextDocument doc;
         doc.setHtml(cleanBlock);
         cleanBlock = doc.toPlainText();
-
         cleanBlock = cleanBlock.trimmed();
+
+        cleanBlock.remove(QChar(0xFFFC));
 
         if (cleanBlock.contains('|') || cleanBlock.contains(QChar(u'»')) || cleanBlock.contains(QChar(u'·')))
             continue;
 
-        const QStringList words = cleanBlock.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-        const bool hasSentencePunct = cleanBlock.contains(QRegularExpression("[\\.!\\?:;]"));
-        if (words.size() <= 8 && !hasSentencePunct)
+        if (cleanBlock.length() < 100)
             continue;
-
-        if (cleanBlock.length() < 100) continue;
 
         if (cleanBlock.contains("copyright", Qt::CaseInsensitive) ||
             cleanBlock.contains("all rights reserved", Qt::CaseInsensitive))
@@ -148,28 +145,31 @@ QString Htmltextextractor::trySmartParagraphs(const QString& html) {
     return results.join("\n");
 }
 
-QString Htmltextextractor::regularClean(const QString& html) {
-    QString text = html;
+// QString Htmltextextractor::regularClean(const QString& html) {
+//     QString text = html;
 
-    text.replace(QRegularExpression("</(div|p|h\\d|li)>", QRegularExpression::CaseInsensitiveOption), "\n");
+//     text.replace(QRegularExpression("</(div|p|h\\d|li)>", QRegularExpression::CaseInsensitiveOption), "\n");
 
-    QTextDocument doc;
-    doc.setHtml(text);
-    text = doc.toPlainText();
+//     QTextDocument doc;
+//     doc.setHtml(text);
+//     text = doc.toPlainText();
 
-    text.replace(QRegularExpression("[ \\t]+"), " ");
-    text.replace(QRegularExpression("\\n\\s*\\n+"), "\n\n");
-    return text.trimmed();
-}
+//     text.replace(QRegularExpression("[ \\t]+"), " ");
+//     text.replace(QRegularExpression("\\n\\s*\\n+"), "\n\n");
+//     return text.trimmed();
+// }
 
-QString Htmltextextractor::postFilterText(const QString& rawText) {
-    QString text = rawText;
+QString Htmltextextractor::postFilterText(const QString& primaryText) {
+    QString text = primaryText;
 
     const QRegularExpression imgSizeLineRe(R"(^\s*\d{2,4}\s*[x×]\s*\d{2,4}\s*$)");
     const QRegularExpression pxRe(R"(\b\d{2,4}\s*px\b)", QRegularExpression::CaseInsensitiveOption);
-    const QRegularExpression punctRe(R"([\.!\?:;])");
     const QRegularExpression urlRe(R"((https?://|www\.|doi:))", QRegularExpression::CaseInsensitiveOption);
-
+    const QRegularExpression wikiRefStart(R"(^\s*[↑^])");
+    const QRegularExpression citationKeywords(
+        R"((Процитовано|Retrieved|Accessed|Архів оригіналу|Archived|DOI:|ISBN)\b.*?(19|20)\d{2})",
+        QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpression strictSentenceEnd(R"([.!?]$)");
 
     QStringList out;
     foreach (QString line, text.split('\n')) {
@@ -178,7 +178,23 @@ QString Htmltextextractor::postFilterText(const QString& rawText) {
 
         if (imgSizeLineRe.match(line).hasMatch()) continue;
         if (pxRe.match(line).hasMatch()) continue;
+        if (wikiRefStart.match(line).hasMatch()) continue;
+        if (citationKeywords.match(line).hasMatch()) continue;
         if (urlRe.match(line).hasMatch()) continue;
+
+        const QStringList words = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+        bool endsWithDot = line.contains(strictSentenceEnd);
+        if (words.size() <= 3 && !endsWithDot) {
+            continue;
+        }
+
+        short digits = 0;
+        short letters = 0;
+        foreach (QChar symbol, line) {
+            if (symbol.isDigit()) digits++;
+            if (symbol.isLetter()) letters++;
+        }
+        if (digits > letters && words.size() < 10) continue;
 
         out << line;
     }
@@ -187,5 +203,27 @@ QString Htmltextextractor::postFilterText(const QString& rawText) {
         qDebug() << "postFilter done work";
 
     return out.join("\n").trimmed();
+}
+
+QString Htmltextextractor::trimText(const QString &text) {
+    QString firstText = text.trimmed();
+    const int minCharsToTrim = 2000;
+    const int percentToTrim = 5;
+
+    if (text.size() < minCharsToTrim) return text;
+
+    const int cutChars = (text.size() * percentToTrim) / 100;
+    const int newLen = text.size() - cutChars;
+
+    firstText.truncate(newLen);
+
+    int lastBreak = firstText.lastIndexOf('\n');
+    lastBreak = qMax(lastBreak, firstText.lastIndexOf(' '));
+    if (lastBreak > 0 && (firstText.size() - lastBreak) < 40) {
+        firstText.truncate(lastBreak);
+    }
+
+    qDebug() << "trimText successful" << cutChars;
+    return firstText.trimmed();
 }
 
