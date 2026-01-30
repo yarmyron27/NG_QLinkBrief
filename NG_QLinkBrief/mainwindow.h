@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QLineEdit>
-#include <QStatusBar>
 #include <QStringListModel>
 #include <QUrl>
 
@@ -41,8 +40,6 @@ private:
     Htmltextextractor* m_extractor;
 
     QStringListModel* m_responseModel;
-
-
 
 };
 #endif // MAINWINDOW_H

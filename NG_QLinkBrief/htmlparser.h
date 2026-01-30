@@ -7,6 +7,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QUrl>
+#include <QTimer>
 
 class Htmlparser : public QObject {
     Q_OBJECT
@@ -20,6 +21,10 @@ public slots:
 
 private slots:
     void downloadFinished(QNetworkReply* reply);
+
+    void onTimeout();
+    void onSslErrors(const QList<QSslError> &errors);
+
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 
 signals:
@@ -31,6 +36,7 @@ signals:
 private:
     QNetworkAccessManager* m_manager = nullptr;
     QNetworkReply* m_currentReply = nullptr;
+    QTimer* m_timeoutTimer;
 };
 
 #endif // HTMLPARSER_H

@@ -126,6 +126,13 @@
            <widget class="QListView" name="response_view"/>
           </item>
           <item>
+           <widget class="QLabel" name="progres_label">
+            <property name="text">
+             <string>Loading.......</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QProgressBar" name="progres">

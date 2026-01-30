@@ -28,18 +28,17 @@ QString Htmltextextractor::process(const QString& rawHtml) {
     QString regularResult = regularClean(base);
     regularResult = postFilterText(regularResult);
     regularResult = trimText(regularResult);
-    if (regularResult.length() > 200) {
+    //if (regularResult.length() > 200) {
         qDebug() << "Algorithm: used smart paragraphs";
         return regularResult;
-    }
-
+    //}
 }
 
-QString Htmltextextractor::tryJsonLd(const QString& rawHtml) {
+QString Htmltextextractor::tryJsonLd(const QString& html) {
     QRegularExpression regex(R"(<script type="application/ld\+json">(.*?)</script>)",
                             QRegularExpression::DotMatchesEverythingOption);
 
-    QRegularExpressionMatchIterator counter = regex.globalMatch(rawHtml);
+    QRegularExpressionMatchIterator counter = regex.globalMatch(html);
 
     while (counter.hasNext()) {
         QRegularExpressionMatch match = counter.next();
@@ -74,8 +73,8 @@ QString Htmltextextractor::tryJsonLd(const QString& rawHtml) {
     return QString();
 }
 
-QString Htmltextextractor::removeJunk(const QString& rawHtml) {
-    QString text = rawHtml;
+QString Htmltextextractor::removeJunk(const QString& html) {
+    QString text = html;
 
     QRegularExpression junkRegex(
         R"(<script.*?>.*?</script>|<style.*?>.*?</style>|<svg.*?>.*?</svg>|<noscript\b.*?>.*?</noscript>)",
@@ -102,7 +101,7 @@ QString Htmltextextractor::extractMainChunk(const QString& cleanHtml) {
     QRegularExpressionMatch search = articleRe.match(cleanHtml);
     if (search.hasMatch())
         qDebug() << "search article";
-        return search.captured(1);
+    return search.captured(1);
 
     const QRegularExpression mainRe(
         R"(<main\b[^>]*>(.*?)</main>)",
@@ -111,7 +110,7 @@ QString Htmltextextractor::extractMainChunk(const QString& cleanHtml) {
     search = mainRe.match(cleanHtml);
     if (search.hasMatch())
         qDebug() << "search main";
-        return search.captured(1);
+    return search.captured(1);
 
     return QString();
 }
@@ -208,7 +207,7 @@ QString Htmltextextractor::postFilterText(const QString& primaryText) {
 QString Htmltextextractor::trimText(const QString &text) {
     QString firstText = text.trimmed();
     const int minCharsToTrim = 2000;
-    const int percentToTrim = 5;
+    const int percentToTrim = 15;
 
     if (text.size() < minCharsToTrim) return text;
 
@@ -226,4 +225,3 @@ QString Htmltextextractor::trimText(const QString &text) {
     qDebug() << "trimText successful" << cutChars;
     return firstText.trimmed();
 }
-
