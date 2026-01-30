@@ -3,35 +3,41 @@
 Htmltextextractor::Htmltextextractor(QObject* parent) : QObject(parent) {}
 
 void Htmltextextractor::extract(const QString& rawHtml) {
-    if (rawHtml.isEmpty()) {
+    if (rawHtml.isEmpty() || rawHtml.length() < 200) {
         emit error(QStringLiteral("Empty HTML"));
         return;
     }
 
     const QString text = process(rawHtml);
+    if (text.trimmed().isEmpty()) {
+        return;
+    }
     emit textReady(text);
 }
 
 QString Htmltextextractor::process(const QString& rawHtml) {
     QString jsonResult = tryJsonLd(rawHtml);
-
     if (!jsonResult.isEmpty() && jsonResult.length() > 200) {
         qDebug() << "Algorithm: used Json-ld";
         jsonResult = trimText(jsonResult);
         return jsonResult;
     }
-    QString cleanHtml = removeJunk(rawHtml);
 
+    QString cleanHtml = removeJunk(rawHtml);
     QString chunk = extractMainChunk(cleanHtml);
     QString base = chunk.isEmpty() ? cleanHtml : chunk;
 
     QString regularResult = regularClean(base);
+
+    if (regularResult.length() > 50) {
     regularResult = postFilterText(regularResult);
     regularResult = trimText(regularResult);
-    //if (regularResult.length() > 200) {
-        qDebug() << "Algorithm: used smart paragraphs";
-        return regularResult;
-    //}
+    qDebug() << "Algorithm: used smart paragraphs";
+    return regularResult;
+    }
+
+    emit error(QStringLiteral("Extracted text is short after cleaning"));
+    return QString();
 }
 
 QString Htmltextextractor::tryJsonLd(const QString& html) {
@@ -99,18 +105,20 @@ QString Htmltextextractor::extractMainChunk(const QString& cleanHtml) {
         QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
 
     QRegularExpressionMatch search = articleRe.match(cleanHtml);
-    if (search.hasMatch())
+    if (search.hasMatch()) {
         qDebug() << "search article";
-    return search.captured(1);
+        return search.captured(1);
+    }
 
     const QRegularExpression mainRe(
         R"(<main\b[^>]*>(.*?)</main>)",
         QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
 
     search = mainRe.match(cleanHtml);
-    if (search.hasMatch())
+    if (search.hasMatch()) {
         qDebug() << "search main";
-    return search.captured(1);
+        return search.captured(1);
+    }
 
     return QString();
 }
@@ -143,20 +151,6 @@ QString Htmltextextractor::regularClean(const QString& cleanHtml) {
     }
     return results.join("\n");
 }
-
-// QString Htmltextextractor::regularClean(const QString& html) {
-//     QString text = html;
-
-//     text.replace(QRegularExpression("</(div|p|h\\d|li)>", QRegularExpression::CaseInsensitiveOption), "\n");
-
-//     QTextDocument doc;
-//     doc.setHtml(text);
-//     text = doc.toPlainText();
-
-//     text.replace(QRegularExpression("[ \\t]+"), " ");
-//     text.replace(QRegularExpression("\\n\\s*\\n+"), "\n\n");
-//     return text.trimmed();
-// }
 
 QString Htmltextextractor::postFilterText(const QString& primaryText) {
     QString text = primaryText;
