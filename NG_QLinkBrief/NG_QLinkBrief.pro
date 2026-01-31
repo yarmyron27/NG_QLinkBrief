@@ -14,12 +14,14 @@ SOURCES += \
     htmlparser.cpp \
     htmltextextractor.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    textsummarizer.cpp
 
 HEADERS += \
     htmlparser.h \
     htmltextextractor.h \
-    mainwindow.h
+    mainwindow.h \
+    textsummarizer.h
 
 FORMS += \
     mainwindow.ui

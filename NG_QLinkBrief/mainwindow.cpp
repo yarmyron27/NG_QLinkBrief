@@ -10,21 +10,36 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_parser = new Htmlparser(this);
     m_extractor = new Htmltextextractor(this);
+    m_summarizer = new Textsummarizer(this);
     m_responseModel = new QStringListModel(this);
 
     ui->response_view->setModel(m_responseModel);
 
+    // connect button and line edit for start parser
     connect(ui->start_samorize, &QPushButton::clicked, this, &MainWindow::onStartSamorize);
     connect(ui->line_url, &QLineEdit::returnPressed, this, &MainWindow::onStartSamorize);
     connect(ui->return_start, &QPushButton::clicked, this, &MainWindow::onReturnToStart);
     connect(ui->line_url, &QLineEdit::textEdited, this, &MainWindow::resetUrlStyle);
 
-    //connect(m_parser, &Htmlparser::htmlReady, this, &MainWindow::onHtmlReady);
-    connect(m_parser, &Htmlparser::error, this, &MainWindow::onParserError);
-
+    // Parser -> Extractor
     connect(m_parser, &Htmlparser::htmlReady, m_extractor, &Htmltextextractor::extract);
-    connect(m_extractor, &Htmltextextractor::textReady, this, &MainWindow::onExtractedTextReady);
+
+    // Extractor -> Summarizer
+    connect(m_extractor, &Htmltextextractor::textReady, m_summarizer, &Textsummarizer::summarize);
+
+    // parser on ui
+    //connect(m_parser, &Htmlparser::htmlReady, this, &MainWindow::onHtmlReady);
+
+    // extractor on ui
+    //connect(m_extractor, &Htmltextextractor::textReady, this, &MainWindow::onExtractedTextReady);
+
+    // sumarizer on ui
+    connect(m_summarizer, &Textsummarizer::summaryReady, this, &MainWindow::onSummaryReady);
+
+    // error handling
+    connect(m_parser, &Htmlparser::error, this, &MainWindow::onParserError);
     connect(m_extractor, &Htmltextextractor::error, this, &MainWindow::onExtractorError);
+    connect(m_summarizer, &Textsummarizer::error, this, &MainWindow::onSummaryError);
 
     connect(m_parser, &Htmlparser::progressBar, ui->progres, &QProgressBar::setValue);
 }
@@ -81,24 +96,30 @@ void MainWindow::resetUrlStyle() {
 //     m_responseModel->setStringList(lines);
 // }
 
-void MainWindow::onParserError(const QString& message)
-{
-    m_responseModel->setStringList(QStringList{QStringLiteral("ERROR: ") + message});
-}
+// void MainWindow::onExtractedTextReady(const QString& text) {
+//     QStringList lines = text.split('\n');
 
+//     if (lines.size() > 1000) {
+//         lines = lines.mid(0, 1000);
+//         lines << QStringLiteral("[...Text truncated...]");
+//     }
 
-void MainWindow::onExtractedTextReady(const QString& text) {
-    QStringList lines = text.split('\n');
+//     m_responseModel->setStringList(lines);
+// }
 
-    if (lines.size() > 1000) {
-        lines = lines.mid(0, 1000);
-        lines << QStringLiteral("[...Text truncated...]");
+void MainWindow::onSummaryReady(const QString& text) {
+        QStringList lines = text.split('\n');
+        m_responseModel->setStringList(lines);
     }
 
-    m_responseModel->setStringList(lines);
+void MainWindow::onParserError(const QString& message) {
+    m_responseModel->setStringList(QStringList{QStringLiteral("PARSER ERROR: ") + message});
 }
 
 void MainWindow::onExtractorError(const QString& message) {
     m_responseModel->setStringList(QStringList{QStringLiteral("EXTRACTOR ERROR: ") + message});
 }
 
+void MainWindow::onSummaryError(const QString& message) {
+    m_responseModel->setStringList(QStringList{QStringLiteral("SUMMARIZER ERROR: ") + message});
+}

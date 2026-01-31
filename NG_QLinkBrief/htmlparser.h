@@ -9,7 +9,8 @@
 #include <QUrl>
 #include <QTimer>
 
-class Htmlparser : public QObject {
+class Htmlparser : public QObject
+{
     Q_OBJECT
 
 public:
