@@ -23,6 +23,7 @@ public:
 
 public slots:
     void summarize(const QString& text);
+    void cancelOperationSummary();
 
 private slots:
     void networkReply(QNetworkReply* reply);
@@ -32,7 +33,10 @@ signals:
     void error(const QString& message);
 
 private:
+    QString trimText(const QString& text);
+
     QNetworkAccessManager* m_managerSummary = nullptr;
+    QNetworkReply* m_currentReplySummary = nullptr;
     const QString m_apiKey;
     const QString m_apiUrl;
 

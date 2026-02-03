@@ -69,7 +69,8 @@ void MainWindow::onStartSamorize() {
 }
 
 void MainWindow::onReturnToStart() {
-    m_parser->cancelOperation();
+    m_parser->cancelOperationParser();
+    m_summarizer->cancelOperationSummary();
 
     m_responseModel->setStringList(QStringList{});
 
@@ -77,6 +78,7 @@ void MainWindow::onReturnToStart() {
     resetUrlStyle();
 
     ui->stackedWidget->setCurrentIndex(0);
+    ui->line_url->setFocus();
 }
 
 void MainWindow::resetUrlStyle() {

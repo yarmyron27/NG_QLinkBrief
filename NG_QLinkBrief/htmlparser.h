@@ -18,7 +18,7 @@ public:
 
 public slots:
     void fetch(const QString& writeUrl);
-    void cancelOperation();
+    void cancelOperationParser();
 
 private slots:
     void downloadFinished(QNetworkReply* reply);

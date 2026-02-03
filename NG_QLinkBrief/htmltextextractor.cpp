@@ -20,6 +20,7 @@ QString Htmltextextractor::process(const QString& rawHtml) {
     if (!jsonResult.isEmpty() && jsonResult.length() > 200) {
         qDebug() << "Algorithm: used Json-ld";
         jsonResult = trimText(jsonResult);
+        qDebug() << jsonResult.size();
         return jsonResult;
     }
 
@@ -33,6 +34,7 @@ QString Htmltextextractor::process(const QString& rawHtml) {
     regularResult = postFilterText(regularResult);
     regularResult = trimText(regularResult);
     qDebug() << "Algorithm: used smart paragraphs";
+    qDebug() << regularResult.size();
     return regularResult;
     }
 
@@ -93,9 +95,11 @@ QString Htmltextextractor::removeJunk(const QString& html) {
     QRegularExpression classIdJunk(
         R"(<[^>]+\b(class|id)\s*=\s*["'][^"']*(menu|navbar|breadcrumb|footer|header|sidebar|share|social|comment|related|subscribe|cookie|banner|ads|advert)[^"']*["'][^>]*>.*?</[^>]+>)",
         QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption);
-    text.remove(classIdJunk);
 
     text.remove(junkRegex);
+    text.remove(layoutRegex);
+    text.remove(classIdJunk);
+
     return text;
 }
 
@@ -198,15 +202,15 @@ QString Htmltextextractor::postFilterText(const QString& primaryText) {
     return out.join("\n").trimmed();
 }
 
-QString Htmltextextractor::trimText(const QString &text) {
+QString Htmltextextractor::trimText(const QString& text) {
     QString firstText = text.trimmed();
     const int minCharsToTrim = 2000;
     const int percentToTrim = 15;
 
-    if (text.size() < minCharsToTrim) return text;
+    if (firstText.size() < minCharsToTrim) return firstText;
 
-    const int cutChars = (text.size() * percentToTrim) / 100;
-    const int newLen = text.size() - cutChars;
+    const int cutChars = (firstText.size() * percentToTrim) / 100;
+    const int newLen = firstText.size() - cutChars;
 
     firstText.truncate(newLen);
 

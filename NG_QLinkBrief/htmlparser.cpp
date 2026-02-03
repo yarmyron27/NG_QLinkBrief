@@ -14,7 +14,7 @@ Htmlparser::Htmlparser(QObject* parent) : QObject(parent) {
 }
 
 void Htmlparser::fetch(const QString& writeUrl) {
-    cancelOperation();
+    cancelOperationParser();
 
     if (!m_manager) {
         emit error(QStringLiteral("Network manager is null"));
@@ -51,14 +51,14 @@ void Htmlparser::downloadFinished(QNetworkReply *reply) {
 
     if (reply->error() != QNetworkReply::NoError) {
         emit error("Network error " + reply->errorString());
-        cancelOperation();
+        cancelOperationParser();
         return;
     }
 
     const int statusVar = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (statusVar >= 300) {
             emit error("HTTP eror " + QString::number(statusVar));
-            cancelOperation();
+            cancelOperationParser();
             return;
         }
 
@@ -71,10 +71,10 @@ void Htmlparser::downloadFinished(QNetworkReply *reply) {
         emit htmlReady(htmlText);
     }
 
-    cancelOperation();
+    cancelOperationParser();
 }
 
-void Htmlparser::cancelOperation() {
+void Htmlparser::cancelOperationParser() {
     if (m_timeoutTimer->isActive())
         m_timeoutTimer->stop();
 
@@ -90,13 +90,13 @@ void Htmlparser::cancelOperation() {
 
 void Htmlparser::onTimeout() {
     emit error("Connection timed out Server not found");
-    cancelOperation();
+    cancelOperationParser();
 }
 
 void Htmlparser::onSslErrors(const QList<QSslError> &errors) {
     QString message = "SSL Error " + errors.first().errorString();
     emit error(message);
-    cancelOperation();
+    cancelOperationParser();
 }
 
 void Htmlparser::downloadProgress(qint64 bytesReceived, qint64 bytesTotal) {

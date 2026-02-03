@@ -1,10 +1,11 @@
 #include "textsummarizer.h"
 
 Textsummarizer::Textsummarizer(QObject* parent) : QObject(parent)
-    , m_apiKey("token")
+    , m_apiKey(QString::fromUtf8(qgetenv("GEMINI_API_KEY")).trimmed())
     , m_apiUrl("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent")
 {
     m_managerSummary = new QNetworkAccessManager(this);
+    m_currentReplySummary = nullptr;
 
     connect(m_managerSummary, &QNetworkAccessManager::finished, this, &Textsummarizer::networkReply);
 }
@@ -14,15 +15,20 @@ void Textsummarizer::summarize(const QString& text) {
         emit error("Input text for summarization is empty");
         return;
     }
+    if (m_apiKey.isEmpty()) {
+        emit error("Missing GEMINI_API_KEY");
+        return;
+    }
+
+    cancelOperationSummary();
     qDebug() << "summarizer start";
-    qDebug() << m_apiUrl;
 
     // requests
     QNetworkRequest request(m_apiUrl);
     request.setRawHeader("x-goog-api-key", m_apiKey.trimmed().toUtf8());
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    QString promptAndText = "Analyze the text provided. First, write a brief description of the main topic in one sentence. Then immediately after that, write a concise summary of the content. Write all this in the language in which the text is written " + text;
+    QString promptAndText = "Analyze the text provided. First, write a brief description of the main topic in one sentence. Then immediately after that, write a concise summary of the content. Write all this in the language in which the text is written " + trimText(text);
 
     //create object with prompt and text and put on list
     QJsonObject partObject;
@@ -43,10 +49,15 @@ void Textsummarizer::summarize(const QString& text) {
     //convert json document to byte array
     QByteArray jsonData = QJsonDocument(rootObject).toJson();
 
-    m_managerSummary->post(request, jsonData);
+    m_currentReplySummary = m_managerSummary->post(request, jsonData);
 }
 
 void Textsummarizer::networkReply(QNetworkReply* reply) {
+    if (reply != m_currentReplySummary) {
+        reply->deleteLater();
+        return;
+    }
+    m_currentReplySummary = nullptr;
     reply->deleteLater();
 
     if (reply->error() != QNetworkReply::NoError) {
@@ -108,5 +119,24 @@ void Textsummarizer::networkReply(QNetworkReply* reply) {
     }
 
     emit error("Gemini returned generic empty response");
+}
+
+void Textsummarizer::cancelOperationSummary() {
+    if (m_currentReplySummary) {
+        m_currentReplySummary->disconnect(this);
+        if (m_currentReplySummary->isRunning()) {
+            m_currentReplySummary->abort();
+        }
+        m_currentReplySummary->deleteLater();
+        m_currentReplySummary = nullptr;
+    }
+}
+
+QString Textsummarizer::trimText(const QString& text) {
+    const int maxChars = 40000;
+
+    if (text.size() < maxChars) return text;
+
+    return text.left(maxChars);
 }
 
