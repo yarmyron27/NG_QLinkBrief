@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_responseModel = new QStringListModel(this);
 
     ui->response_view->setModel(m_responseModel);
+    ui->response_view->setWordWrap(true);
 
     // connect button and line edit for start parser
     connect(ui->start_samorize, &QPushButton::clicked, this, &MainWindow::onStartSamorize);
@@ -108,9 +109,9 @@ void MainWindow::resetUrlStyle() {
 // }
 
 void MainWindow::onSummaryReady(const QString& text) {
-        QStringList lines = text.split('\n');
-        m_responseModel->setStringList(lines);
-    }
+    QStringList lines = text.split('\n');
+    m_responseModel->setStringList(lines);
+}
 
 void MainWindow::onParserError(const QString& message) {
     m_responseModel->setStringList(QStringList{QStringLiteral("PARSER ERROR: ") + message});
